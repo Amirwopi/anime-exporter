@@ -1,6 +1,5 @@
-// api/anime.js
-const axios = require('axios');
-const cheerio = require('cheerio');
+import axios from 'axios';
+import cheerio from 'cheerio';
 
 async function extractLinksFromDirectory(directoryUrl) {
     try {
@@ -23,12 +22,8 @@ async function extractLinksFromDirectory(directoryUrl) {
     }
 }
 
-module.exports = async (req, res) => {
-    const { slug, quality } = req.query;
-
-    if (!slug || !quality) {
-        return res.status(400).json({ error: 'Invalid request, ensure the format is /anime/{slug}/{quality}' });
-    }
+export default async function handler(req, res) {
+    const { slug, quality } = req.query;  // دریافت slug و quality از URL
 
     try {
         const apiResponse = await axios.get(`https://api-wopi.amirwopi.workers.dev/anime/${slug}`);
@@ -41,13 +36,13 @@ module.exports = async (req, res) => {
         }
 
         const extractedLinks = await extractLinksFromDirectory(selectedLink.URL);
+
         const episodeLinks = {};
         extractedLinks.forEach((link, index) => {
-            const episodeNumber = index + 1;
-            episodeLinks[`ep${episodeNumber}`] = link;
+            episodeLinks[`ep${index + 1}`] = link;
         });
 
-        return res.status(200).json({
+        res.json({
             Slug: data.Slug,
             Title: data.Title,
             Quality: selectedLink.Quality,
@@ -55,6 +50,6 @@ module.exports = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching data from API:', error);
-        return res.status(500).json({ error: 'Failed to fetch data' });
+        res.status(500).json({ error: 'Failed to fetch data' });
     }
-};
+}
