@@ -1,5 +1,9 @@
-import axios from 'axios';
-import cheerio from 'cheerio';
+const express = require('express');
+const axios = require('axios');
+const cheerio = require('cheerio');
+
+const app = express();
+const PORT = 3000;
 
 async function extractLinksFromDirectory(directoryUrl) {
     try {
@@ -22,8 +26,13 @@ async function extractLinksFromDirectory(directoryUrl) {
     }
 }
 
-export default async function handler(req, res) {
-    const { slug, quality } = req.query;  // دریافت slug و quality از URL
+app.get('/', async (req, res) => {
+    // دریافت `slug` و `quality` از query parameters
+    const { slug, quality } = req.query;
+
+    if (!slug || !quality) {
+        return res.status(400).json({ error: 'Both slug and quality parameters are required' });
+    }
 
     try {
         const apiResponse = await axios.get(`https://api-wopi.amirwopi.workers.dev/anime/${slug}`);
@@ -39,7 +48,8 @@ export default async function handler(req, res) {
 
         const episodeLinks = {};
         extractedLinks.forEach((link, index) => {
-            episodeLinks[`ep${index + 1}`] = link;
+            const episodeNumber = index + 1;
+            episodeLinks[`ep${episodeNumber}`] = link;
         });
 
         res.json({
@@ -52,4 +62,8 @@ export default async function handler(req, res) {
         console.error('Error fetching data from API:', error);
         res.status(500).json({ error: 'Failed to fetch data' });
     }
-}
+});
+
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
