@@ -1,9 +1,6 @@
-const express = require('express');
+// api/anime.js
 const axios = require('axios');
 const cheerio = require('cheerio');
-
-const app = express();
-const PORT = 3000;
 
 async function extractLinksFromDirectory(directoryUrl) {
     try {
@@ -11,7 +8,6 @@ async function extractLinksFromDirectory(directoryUrl) {
         const html = response.data;
         const $ = cheerio.load(html);
         const links = [];
-
 
         $('#directory-listing a').each((index, element) => {
             const href = $(element).attr('href');
@@ -27,15 +23,16 @@ async function extractLinksFromDirectory(directoryUrl) {
     }
 }
 
+module.exports = async (req, res) => {
+    const { slug, quality } = req.query;
 
-app.get('/anime/:slug/:quality', async (req, res) => {
-    const { slug, quality } = req.params;
+    if (!slug || !quality) {
+        return res.status(400).json({ error: 'Invalid request, ensure the format is /anime/{slug}/{quality}' });
+    }
 
     try {
-
         const apiResponse = await axios.get(`https://api-wopi.amirwopi.workers.dev/anime/${slug}`);
         const data = apiResponse.data;
-
 
         const selectedLink = data.DownloadLinks.find(link => link.Quality.toLowerCase() === quality.toLowerCase());
 
@@ -43,17 +40,14 @@ app.get('/anime/:slug/:quality', async (req, res) => {
             return res.status(404).json({ error: `Quality ${quality} not found for ${slug}` });
         }
 
-
         const extractedLinks = await extractLinksFromDirectory(selectedLink.URL);
-
-
         const episodeLinks = {};
         extractedLinks.forEach((link, index) => {
             const episodeNumber = index + 1;
             episodeLinks[`ep${episodeNumber}`] = link;
         });
 
-        res.json({
+        return res.status(200).json({
             Slug: data.Slug,
             Title: data.Title,
             Quality: selectedLink.Quality,
@@ -61,11 +55,6 @@ app.get('/anime/:slug/:quality', async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching data from API:', error);
-        res.status(500).json({ error: 'Failed to fetch data' });
+        return res.status(500).json({ error: 'Failed to fetch data' });
     }
-});
-
-
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+};
