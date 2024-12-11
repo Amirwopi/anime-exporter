@@ -49,7 +49,8 @@ app.get('/', async (req, res) => {
         const episodeLinks = {};
         extractedLinks.forEach((link, index) => {
             const episodeNumber = index + 1;
-            episodeLinks[`${anime_id}-season-${data.update.season}-episond-${data.update.episond}`] = link;
+            const season = data.update[0]?.season;
+            episodeLinks[`${anime_id}-season-${season}-episond-${episodeNumber}`] = link;
         });
 
         res.json({
