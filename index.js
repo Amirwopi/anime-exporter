@@ -28,7 +28,7 @@ async function extractLinksFromDirectory(directoryUrl) {
 
 app.get('/', async (req, res) => {
     // دریافت `slug` و `quality` از query parameters
-    const { episodeid, quality } = req.query;
+    const { anime_id, quality } = req.query;
 
     if (!episodeid || !quality) {
         return res.status(400).json({ error: 'Both slug and quality parameters are required' });
