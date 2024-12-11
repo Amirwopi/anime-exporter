@@ -49,7 +49,7 @@ app.get('/', async (req, res) => {
         const episodeLinks = {};
         extractedLinks.forEach((link, index) => {
             const episodeNumber = index + 1;
-            episodeLinks[`${slug}-${episodeNumber}`] = link;
+            episodeLinks[`ep-${episodeNumber}`] = link;
         });
 
         res.json({
