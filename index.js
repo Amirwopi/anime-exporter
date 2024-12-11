@@ -28,20 +28,20 @@ async function extractLinksFromDirectory(directoryUrl) {
 
 app.get('/', async (req, res) => {
     // دریافت `slug` و `quality` از query parameters
-    const { slug, quality } = req.query;
+    const { episodeid, quality } = req.query;
 
-    if (!slug || !quality) {
+    if (!episodeid || !quality) {
         return res.status(400).json({ error: 'Both slug and quality parameters are required' });
     }
 
     try {
-        const apiResponse = await axios.get(`https://api-wopi.amirwopi.workers.dev/anime/${slug}`);
+        const apiResponse = await axios.get(`https://api-wopi.amirwopi.workers.dev/anime/${episodeid}`);
         const data = apiResponse.data;
 
         const selectedLink = data.DownloadLinks.find(link => link.Quality.toLowerCase() === quality.toLowerCase());
 
         if (!selectedLink) {
-            return res.status(404).json({ error: `Quality ${quality} not found for ${slug}` });
+            return res.status(404).json({ error: `Quality ${quality} not found for ${episodeid}` });
         }
 
         const extractedLinks = await extractLinksFromDirectory(selectedLink.URL);
@@ -49,7 +49,7 @@ app.get('/', async (req, res) => {
         const episodeLinks = {};
         extractedLinks.forEach((link, index) => {
             const episodeNumber = index + 1;
-            episodeLinks[`ep-${episodeNumber}`] = link;
+            episodeLinks[`${episodeid}-episode-${episodeNumber}`] = link;
         });
 
         res.json({
